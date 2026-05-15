@@ -5,7 +5,8 @@ const router = useRouter()
 const route = useRoute()
 
 const navItems = [
-  { name: 'Home', path: '/' },
+  { name: '3D Map', path: '/' },
+  { name: 'Home', path: '/home' },
   { name: 'About', path: '/about' },
   { name: 'Dashboard', path: '/dashboard' }
 ]
