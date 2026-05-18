@@ -25,8 +25,7 @@ const getStatusText = (status: string) => {
     </div>
 
     <div class="map-wrapper">
-      <!-- 🔥 关键：把设备数据传给地图 -->
-      <CesiumMapComponent :devices="deviceData" />
+      <CesiumMap :devices="deviceData" />
     </div>
 
     <div class="device-list">

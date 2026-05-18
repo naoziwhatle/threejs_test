@@ -1,15 +1,22 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
-import * as Cesium from 'cesium'
+
+const Cesium = (window as any).Cesium
 
 const containerRef = ref<HTMLDivElement | null>(null)
-let viewer: Cesium.Viewer | null = null
+const errorMessage = ref('')
+let viewer: any = null
 
 const initCesium = async () => {
   await nextTick()
   
   if (!containerRef.value) {
-    console.error('Cesium container not found')
+    errorMessage.value = '地图容器未找到'
+    return
+  }
+
+  if (!Cesium) {
+    errorMessage.value = 'Cesium 库未加载'
     return
   }
 
@@ -29,10 +36,10 @@ const initCesium = async () => {
       sceneModePicker: false,
       navigationHelpButton: false,
       navigationInstructionsInitiallyVisible: false,
-      terrainProvider: new Cesium.EllipsoidTerrainProvider(),
-      imageryProvider: osmImageryProvider
+      terrainProvider: new Cesium.EllipsoidTerrainProvider()
     })
 
+    viewer.imageryLayers.addImageryProvider(osmImageryProvider)
     viewer.scene.globe.enableLighting = true
     
     const center = Cesium.Cartesian3.fromDegrees(116.4074, 39.9042, 5000000)
@@ -77,8 +84,9 @@ const initCesium = async () => {
     })
 
     console.log('Cesium initialized successfully')
-  } catch (error) {
+  } catch (error: any) {
     console.error('Cesium initialization error:', error)
+    errorMessage.value = error.message || '地图初始化失败，请检查浏览器是否支持 WebGL'
   }
 }
 
@@ -99,14 +107,73 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div ref="containerRef" class="cesium-container"></div>
+  <div class="cesium-wrapper">
+    <div v-if="errorMessage" class="error-overlay">
+      <div class="error-content">
+        <div class="error-icon">🗺️</div>
+        <h3>地图加载失败</h3>
+        <p>{{ errorMessage }}</p>
+        <p class="error-hint">请尝试使用 Chrome 或 Firefox 浏览器，确保已启用 GPU 加速</p>
+      </div>
+    </div>
+    <div ref="containerRef" class="cesium-container"></div>
+  </div>
 </template>
 
 <style scoped>
+.cesium-wrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
 .cesium-container {
   width: 100%;
   height: 100%;
   position: relative;
   overflow: hidden;
+}
+
+.error-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.error-content {
+  text-align: center;
+  color: white;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  max-width: 400px;
+}
+
+.error-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.error-content h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+}
+
+.error-content p {
+  margin: 0 0 0.5rem 0;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.error-hint {
+  font-size: 0.85rem !important;
+  color: rgba(255, 255, 255, 0.6) !important;
 }
 </style>
